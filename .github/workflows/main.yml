@@ -1,11 +1,53 @@
-name: CI
-on: push
+on:
+  workflow_dispatch:
 
 jobs:
-  test:
+  hello-my-actions:
     runs-on: ubuntu-latest
+    name: Hello My Actions
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v1
-    - run: npm install
-    - run: npm test
+      - name: checkout
+        uses: actions/checkout@v1
+      - name: test
+        run: |-
+          TRY_COUNT=0
+          while [ $TRY_COUNT -le 10 ]
+          do
+              RELEASE_COMPLETED=`echo '{
+                  "repositoryName": "ecr-prd-idollive-frontsvc-mfs",
+                  "imageId": {
+                      "imageDigest": "sha256:99d8bdcf2aa2ba0f9fa80b38ae0af4a93eba0fd693fa371a1e625fc050a2742e",
+                      "imageTag": "PROD_220726_03_idolive-frontsvc-mfs_latest"
+                  },
+                  "replicationStatuses": [
+                      {
+                          "region": "ap-southeast-1",
+                          "registryId": "842983267831",
+                          "status": "COMPLETE"
+                      },
+                      {
+                          "region": "eu-west-3",
+                          "registryId": "842983267831",
+                          "status": "COMPLETE"
+                      },
+                      {
+                          "region": "us-east-1",
+                          "registryId": "842983267831",
+                          "status": "COMPLETE"
+                      }
+                  ]
+              }' | jq '[.replicationStatuses[].status|select(. == ("COMPLETE"))]' | jq length 2>&1`
+          
+              if [ $RELEASE_COMPLETED -eq 3 ]
+              then
+                  echo COMPLETED!!
+                  break
+              else
+                  sleep 1
+              fi
+          
+              ((TRY_COUNT++))
+              echo RELEASE_COMPLETED: $RELEASE_COMPLETED
+          done
+          
+          echo 'DONE!'
