@@ -11,5 +11,4 @@ Try these:
 * `act -l` - view the execution graph
 
 first tag
-second tag
 third tag
