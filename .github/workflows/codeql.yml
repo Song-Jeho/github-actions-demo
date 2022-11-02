@@ -1,0 +1,38 @@
+name: "CodeQL"
+on:
+  push:
+    branches: [ dev, main ]  # 개발/검수/상용 빌드 명령어가 상이할시, dev 브랜치만 Code Scanning하도록 수정
+  pull_request:
+    branches: [dev, main]    # 개발/검수/상용 빌드 명령어가 상이할시, dev 브랜치만 Code Scanning하도록 수정
+jobs:
+  # 템플릿 코드와 동일(각종 job 설정)
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'java' ]
+
+    steps:
+      # 템플릿 코드와 동일(Repository Checkout)
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 템플릿 코드와 동일(Initializes the CodeQL tools for scanning)
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+
+      #################################################
+      # 템플릿 코드의 Auto Build 대신 각 WAS의 빌드 과정 추가
+      #################################################
+
+      # 템플릿 코드와 동일(CodeQL 수행)
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
